@@ -1,0 +1,45 @@
+navigate with link
+  <a routerLink='/user' routerLinkActive='active' [routerLinkActiveOptions]={exact: true}> User</a>
+  <a [routerLink]=['categories', 'mobile'] routerLinkActive='active'> mobile Cat</a>
+  <a
+    [routerLink]="['/users', '2', 'john']"
+    [queryParams]="{ page: 1, debug: true, search: 'test' }"
+    fragment="load"
+    >John
+  </a>
+
+
+
+navigate with button 
+
+  onClick : this.router.navigateByUrl('/categories')
+  onClick : this.router.navigate(
+              ['/categories', id], 
+              queryParams :{ page: 1, debug: true, search: 'test' },
+              fragment: 'load
+              )
+
+  Preserve Query Param qui sont danss l'url:
+     onClick : this.router.navigate(['/users', 3, 'jsk'], {queryParamsHandling: 'preserve',});
+   
+
+
+Params | fragment | queryParams in Activate route
+  <a
+    [routerLink]="['/users', '2', 'john']"
+    [queryParams]="{ page: 1, debug: true, search: 'test' }"
+    fragment="load"
+    >John
+  </a>
+    
+  constructor(private route: ActivatedRoute) {}  
+  this.route.snapshot.params['id'] // ça ne s'actualise pas quand on change l'id sur la même page  
+  this.route.params.subscribe((params: Params) => { id= id: params['id']
+  this.route.paramMap.subscribe((params: Params) => {id = params.get('id')   
+  this.route.queryParams.susbscribe.....
+  this.route.queryParamMap.susbscribe.....
+  
+  this.route.fragment.susbscribe.....
+
+
+

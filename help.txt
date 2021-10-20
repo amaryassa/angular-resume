@@ -1,0 +1,91 @@
+@component
+  templateUrl ou template  // ``
+  styleUrls ou styles // [``]
+  selector :
+    'app-users' // par défaut <app-users></app-users>
+    '[app-users]' // <div app-users ></div>
+    '.app-users' // <div class='app-users'></div>
+  encapsulation : ViewEncapsulation.None // pour enlever l'encapsulation et qu'il puisse être ciblé par d'autre en css par exemple (le component qui aura ça, son css par exemple sera équivalent à style global)
+
+
+DATA
+  two binding
+    <input [(ngModel)]="userName" />
+  
+  send data 
+    from parent to child
+      parent :<app-user  *ngFor="let user of users" [userName]="user" [jsk]="user"></app-user>
+      child : @Input() userName: string;
+      child : @Input('jsk') userName: string;
+    from child to parent
+      child (<app-add-user>) : @Output() userAdded = new EventEmitter<string>();  this.userAdded.emit(this.userName)
+      parents (<user-app>):<app-add-user (userAdded)="OnUserAdded($event)"></app-add-user> ;  OnUserAdded(event) {}
+
+  viewChild:
+     html :  <input #userInput />
+     ts :  @ViewChild('userInput') userData: ElementRef
+  
+  ContentChild
+    parent:  <parent> <child><p #userParagraph>content inside component</p></child> </parent>
+    child  html : <p> <ng-content></ng-content></p>
+    child TS: @ContentChild('userParagraph') userParagraph:ElementRef
+
+
+
+ngIF
+  <div *ngIf="amar; then contentIf; else contentElse"> </div>
+  <ng-template #contentIf><h1>IF</h1></ng-template>
+  <ng-template #contentElse><h1>Else</h1></ng-template>
+
+ngFor
+  <div *ngIf="usersData as users">
+    <div *ngFor="let user of users">{{ user }} :D</div>
+  </div>
+
+ngStyle
+  <div [ngStyle]="{background-color: 'red', position: getPosition()}"></div>
+
+ngSwitch
+  <div [ngSwitch]="value">
+    <div *ngSwitchCase="10">10 </div>
+    <div *ngSwitchDefault>2</div>
+  </div>
+
+
+ngClass
+  <div [ngClass]="{offline : userStatus ==='offline'}"></div>
+
+ng-content
+  parent: (app-user) : <app-user-add> content between component</app-user-add>
+  child : (app-user-add) : <ng-content></ng-content> // affichera ça content between component
+
+
+Component Life cycle :
+  ngOnChanges
+  ngOnInit 
+  ngDoCheck
+  ngAfterContentInit
+  ngAfterContentChecked
+  ngAfterViewInit
+  ngAfterViewChecked
+  ngOnDestroy
+ 
+  ngOnChanges: pour les @Input
+    ngOnchanges(element:SimpleChanges) {console.log(element)} // dès qu'une variable sera modifiée au niveau du parent on le voit ici au niveau du child
+  
+  ngDoCheck:
+    ngDoCheck(){} // sera appelé à chaque fois qu'une action a été effectuée
+  
+  ngAfterContentInit:
+    ngAfterContentInit() {} // Une méthode de rappel qui est invoquée immédiatement après qu'Angular a terminé l'initialisation de tout le contenu de la directive. Elle n'est invoquée qu'une seule fois lorsque la directive est instanciée.
+
+  ngAfterContentChecked: comme ngDoCheck
+    ngAfterContentChecked(){}
+
+
+Directive : ng g d directives/CustomeDirectiveBackgroundColor
+  directive simple 
+  directive avec renderer2:
+    constructor(private element : ElementRef, private renderer:Renderrer2 ){}
+    ngOnInit(){this.renderer.setStyle(this.element.nativeElement, 'background-color', 'green')}
+  
