@@ -1,3 +1,0 @@
-canActivate
-canActivateChild
-CanDeactivate 
