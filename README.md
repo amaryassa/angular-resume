@@ -1,3 +1,5 @@
+### "start": "concurrently -k -n \"Angular,BDD\" -p \"[{name}]\" -c \"blue,green\" \"ng serve\" \"json-server --watch db.json\"",
+
 ng g m posts
 for %n in (posts/add-post ,posts/edit-post ,posts/list-posts ,posts/single-post) do ng g c %n --skipTests
 
