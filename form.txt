@@ -1,0 +1,48 @@
+Template Driven Form
+  FormModule
+    <form (ngSubmit)="onFormSubmit(myForm)" #myForm="ngForm">
+      <input name="nom" ngModel>
+    </form> 
+    Ou
+      html : <form (ngSubmit)="onFormSubmit()" #myForm="ngForm">
+      TS : @ViewChild(myForm) monFormulaire:NgForm
+
+
+  patchValue and setValue
+    setValue : Tous les input (ngModel) du formulaire doivent être envoyé (si un truc manque, une erreur sera affichée) contrairement à patchValue
+      
+      onSetValue() {
+        this.signUpForm.form.setValue({
+          name: 'amar',
+          email: 'amar@amar.fr',
+          address: {
+            rue: 'Iby',
+            ville: 'Ma ville',
+            cp: '101010',
+          },
+        });
+      }
+      onPatchValue() {
+        this.signUpForm.form.patchValue({
+          email: 'autre@autre.fr',
+        });
+
+
+
+Reactive Forms
+  ReactiveFormsModule
+    signUpForm: FormGroup;
+    ngOnInit(): void {
+    this.signUpForm = new FormGroup({
+      name: new FormControl(null, [ Validators.required, Validators.minLength(2), Validators.maxLength(5)]),
+      email: new FormControl(null, [Validators.required, Validators.email]),
+      genre: new FormControl('femme', [Validators.required]),
+      address: new FormGroup({
+        rue: new FormControl(null),
+        ville: new FormControl(null),
+        cp: new FormControl(null, [Validators.required]),
+      }),
+    });
+
+
+

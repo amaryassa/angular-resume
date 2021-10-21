@@ -1,0 +1,34 @@
+Simple Validator :
+  export function isRestrictedNames(restrictedNames: string[]): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: boolean } | null => {
+      if (restrictedNames.includes(control.value)) {
+        return { nameIsRestricted: true };
+      }
+      return null;
+    };
+  }
+  ts: 
+  namesRestrict = ['amar', 'jsk];
+  name: new FormControl(null, [ Validators.required,isRestrictedNames(this.namesRestrict)]),
+
+
+
+Async Validator
+  export function isRestrictedEmails(restrictedEmails: string[]): AsyncValidatorFn {
+    return (control: AbstractControl): Promise<any> | Observable<any> => {
+      let promise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+          if (restrictedEmails.includes(control.value)) {
+            resolve({ emailIsRestricted: true });
+          } else {
+            resolve(null);
+          }
+        }, 2500);
+      });
+      return promise;
+    };
+  }
+
+  ts :
+    restrictedEmails = ['amar@amar.fr', 'test@test.fr'];
+    email: new FormControl(null,[Validators.required, Validators.email],[isRestrictedEmails(this.restrictedEmails)]),

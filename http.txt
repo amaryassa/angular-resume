@@ -1,0 +1,25 @@
+custome Header and params url
+  createPost(postData: Post) {
+    return this.http.post<{ name: string }>(
+      'https://sdfsdfsdfsdfsdferfzeggdfgsdfgsgdfG',
+      postData,
+      {
+        headers: new HttpHeaders({
+          'custom-header': 'post de Amar',
+        }),
+        params: new HttpParams().set('page' : '22')
+        //params: queryParams,
+        observe: 'body', 
+      }
+    );
+  }
+
+  //ou 
+    queryParams= new HttpParams();  queryParam.append('page', '22')
+
+
+observe: 'body', // default : ce que le server nous renvoie (juste la data)
+observe: 'Response', // ce que le server nous renvoie (toute la réponse)
+observe: 'events', //HttpEventType ce que le server nous renvoie (type:0) 
+  type:0 <==> HttpEventType.Sent
+  type:4 <==> HttpEventType.Response

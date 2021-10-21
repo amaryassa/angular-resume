@@ -1,0 +1,33 @@
+auth-interceptor.service.ts
+
+  import {
+  HttpEventType,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest,
+  } from '@angular/common/http';
+
+  export class AuthInterceptorService implements HttpInterceptor {
+    intercept(req: HttpRequest<any>, next: HttpHandler) {
+      console.log('Request INterceptor');
+      let modifiedRequest = req.clone({
+        headers: req.headers.append('auth', 'abc'),
+        params: req.params.append('securiteeee', 'hello world'),
+      });
+      return next.handle(modifiedRequest);
+    }
+  }
+
+
+app.module.ts //les interceptor s'exécutent dans l'ordre
+
+  providers: [{
+    provide: HTTP_INTERCEPTORS,
+    useClass: AuthInterceptorService,
+    multi: true,
+  },
+  {
+    provide: HTTP_INTERCEPTORS,
+    useClass: LoginInterceptorService,
+    multi: true,
+  }]
