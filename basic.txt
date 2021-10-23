@@ -18,8 +18,8 @@ DATA
       child : @Input() userName: string;
       child : @Input('jsk') userName: string;
     from child to parent
-      child (<app-add-user>) : @Output() userAdded = new EventEmitter<string>();  this.userAdded.emit(this.userName)
-      parents (<user-app>):<app-add-user (userAdded)="OnUserAdded($event)"></app-add-user> ;  OnUserAdded(event) {}
+      child (<Child>) : @Output() userAdded = new EventEmitter<string>();  this.userAdded.emit(this.userName)
+      parents (<Parent>):<Child (userAdded)="OnUserAdded($event)"></Child> ;  OnUserAdded(event) {}
 
   viewChild:
      html :  <input #userInput />

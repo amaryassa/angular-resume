@@ -1,0 +1,227 @@
+installation :
+  npm install @ngrx/store
+  npm install @ngrx/effects
+  npm install @ngrx/router-store --save
+  npm install @ngrx/store-devtools --save
+
+
+Etape :
+  1) clients.state.ts
+
+      export const CLIENTS_STATE_NAME = 'clientsState';
+      export interface ClientsState {clients: Client[]}
+      export const initialState: ClientsState = {clients: []};
+
+  2) clients.actions.ts
+
+      export const LOAD_CLIENTS_REQUEST = '[clients page] load clients request';
+      export const LOAD_CLIENTS_SUCCESS = '[clients page] load clients success';
+      export const LOAD_CLIENTS_FAILLURE = '[clients page] load clients faillure';
+
+      export const loadClientsRequest = createAction(LOAD_CLIENTS_REQUEST);
+      export const loadClientsSuccess = createAction(
+        LOAD_CLIENTS_SUCCESS,
+        props<{ clients: Client[] }>()
+      );
+      export const loadClientsFaillure = createAction(LOAD_CLIENTS_FAILLURE);
+
+  3) clients.reducer.ts
+
+      import { createReducer, Action, on } from '@ngrx/store';
+      import { ClientsState, initialState } from './clients.state';
+      import {loadClientsSuccess,updateClientsSuccess} from './clients.actions';
+
+      const _clientsReducer = createReducer(
+        initialState,
+        on(loadClientsSuccess, (state, action) => {
+          return {
+            ...state,
+            clients: action.clients,
+          };
+        }),
+        //on(updateClientsSuccess, (state, action) => {...
+      );
+
+      export function clientsReducer(state: ClientsState | undefined, action: Action) {
+        return _clientsReducer(state, action);
+      }
+
+  4) clients.selector.ts 
+
+    import { createSelector, createFeatureSelector } from '@ngrx/store';
+    import { ClientsState, CLIENTS_STATE_NAME } from './clients.state';
+
+    const getClientsState = createFeatureSelector<ClientsState>(CLIENTS_STATE_NAME);
+
+    export const getClients = createSelector(getClientsState, (state) => {
+      return state.clients;
+    });
+
+    export const getClientById = (id: number | string) => {
+      return createSelector(getClients, (clients) => {
+        return clients ? clients.find((client) => client.id == id) : null;
+      });
+    };
+
+
+  5) clients.effects.ts
+
+      @Injectable({providedIn: 'root',})
+      export class ClientsEffects {
+        constructor(
+          private actions$: Actions,
+          private clientsService: ClientsService,
+          private store: Store<AppState>
+        ) {}
+      
+        loadClients$ = createEffect(
+          () => {
+            return this.actions$.pipe(
+              ofType(loadClientsRequest),
+              mergeMap((action) => {
+                console.log('Effects call : loadClientsRequest');
+
+                return this.clientsService.getClients().pipe(
+                  map((data) => {
+                    // throw 'Parameter is not a number!';
+                    return loadClientsSuccess({ clients: data });
+                  }),
+                  catchError((errorResponse) => {
+                    return of(errorResponse);
+                  })
+                );
+              })
+            );
+          },
+          { dispatch: true } // par defaut
+        );
+
+        success$ = createEffect(
+          () => {
+            return this.actions$.pipe(
+              ofType(...[loadClientsSuccess]),
+              map((action) => {
+                // return setLoader({ status: false });
+                // this.store.dispatch(setLoader({ status: true }));
+                console.log('on est là success$ effects');
+                EMPTY;
+              })
+            );
+          },
+          { dispatch: false } // quand on fait pas un quand return pas un onType après
+        );
+      }
+
+
+
+
+configuration :
+
+  store
+    app.state.ts
+      export interface AppState {
+        [POSTS_STATE_NAME]: PostsState;
+        [ROUTER_STATE_NAME]: RouterReducerState;
+      }
+
+      export const appReducer = {
+        [POSTS_STATE_NAME]: PostsReducer,
+        [ROUTER_STATE_NAME]: routerReducer,
+      };
+      
+  app.module.ts
+    imports:[
+      StoreModule.forRoot(appReducer),
+      EffectsModule.forRoot([PostsEffects]),
+      StoreDevtoolsModule.instrument({logOnly: environment.production}),
+       StoreRouterConnectingModule.forRoot({
+      serializer: CustomSerializer,
+    }),
+    ]
+  
+
+  clients.module.ts //en LazyLoad
+    StoreModule.forFeature(CLIENTS_STATE_NAME, ClientsReducer)
+    EffectsModule.forFeature([ClientsEffects]),
+    
+
+
+
+
+
+
+_________________________________________
+ClientsListComponent
+  constructor(private store: Store<AppState>){}
+  this.store.dispatch(loadClientsRequest());
+  this.client$= this.store.select(getClientById(id))
+
+_____________________________________________________________________________________
+*****************
+Router Store ****
+*****************
+app.module.ts
+    imports:[
+      StoreRouterConnectingModule.forRoot({serializer: CustomSerializer}),
+    ]
+
+rajout dans :src/app/store/app.state.ts
+     export interface AppState {
+        [ROUTER_STATE_NAME]: RouterReducerState;
+      }
+
+      export const appReducer = {
+        [ROUTER_STATE_NAME]: routerReducer,
+      };
+
+création dans  : src/app/store/router
+  custom-serializer.ts
+    import { RouterStateSerializer } from '@ngrx/router-store';
+    import { Params, RouterStateSnapshot } from '@angular/router';
+
+    export interface RouterStateUrl {
+      url: string;
+      params: Params;
+      queryParams: Params;
+    }
+
+    export class CustomSerializer implements RouterStateSerializer<RouterStateUrl> {
+      serialize(routerState: RouterStateSnapshot): RouterStateUrl {
+        let route = routerState.root;
+
+        while (route.firstChild) {route = route.firstChild;}
+
+        const {
+          url,
+          root: { queryParams },
+        } = routerState;
+        const { params } = route;
+
+        // Only return an object including the URL, params and query params
+        // instead of the entire snapshot
+        return { url, params, queryParams };
+      }
+    }
+
+  router.selector.ts
+    import { createFeatureSelector, createSelector } from '@ngrx/store';
+    import { RouterStateUrl } from './custom-serializer';
+    import { RouterReducerState } from '@ngrx/router-store';
+
+    export const ROUTER_STATE_NAME = 'routerState';
+
+    const getRouterState =
+      createFeatureSelector<RouterReducerState<RouterStateUrl>>(ROUTER_STATE_NAME);
+
+    export const getCurrentRoute = createSelector(getRouterState, (router) => {
+      return router.state;
+    });
+
+
+
+
+
+
+
+
+_______________________________________________________________________________________
