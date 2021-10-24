@@ -3,6 +3,7 @@ installation :
   npm install @ngrx/effects
   npm install @ngrx/router-store --save
   npm install @ngrx/store-devtools --save
+  npm install @ngrx/entity
 
 
 Etape :
@@ -225,3 +226,88 @@ création dans  : src/app/store/router
 
 
 _______________________________________________________________________________________
+
+Entity
+  posts.state.ts
+    import { createEntityAdapter, EntityAdapter, EntityState } from '@ngrx/entity';
+    import { Post } from '../../models/post.model';
+
+    export const POSTS_STATE_NAME = 'postsState';
+
+    export interface PostsState extends EntityState<Post> {
+      // compteurTest: number
+      // selectPostId: string | null;
+    }
+
+    export const postsAdapter: EntityAdapter<Post> = createEntityAdapter<Post>({
+      // sortComparer: sortByTitle,
+      // selectId: selectPostId,
+    });
+
+    export const initialState: PostsState = postsAdapter.getInitialState({
+      // compteurTest: 0,
+      // selectPostId: null,
+      });{}
+
+    export function selectPostId(a: Post): string {
+      //ID de l'entitie sera title et non pas le ID par défaut
+      return a.title;
+    }
+    export function sortById(a: Post, b: Post): number {
+      //-1;  a <  b : plus petit au plus grand
+      // 1;  a >  b : plus grand au plus petit
+      // 0;  a == b
+      const compare = b.id - a.id;
+
+      return compare;
+    }
+
+  posts.actions.ts //rien ne change sauf le update
+    export const updatePostSuccess = createAction(
+      UPDATE_POST_SUCCESS,
+      props<{ post: Update<Post> }>()
+    );
+
+  posts.reducer.ts
+    const _postsReducer = createReducer(
+    initialState,
+    on(loadPostsSuccess, (state, action) => {
+      return postsAdapter.setAll(action.posts, state);
+    }),
+    on(addPostSuccess, (state, action) => {
+      return postsAdapter.addOne(action.post, {
+        ...state,
+        compteurTest: state.compteurTest + 1,
+      });
+    }),
+    on(deletePostSuccess, (state, { id }) => {
+      return postsAdapter.removeOne(String(id), state);
+    }),
+    on(updatePostSuccess, (state, { post }) => {
+      return postsAdapter.updateOne(post, state);
+    })
+
+
+    export function postsReducer(state: PostsState | undefined, action: Action) {
+      return _postsReducer(state, action);
+    }
+
+posts.selectors.ts
+  export const postSelectors = postsAdapter.getSelectors();
+
+  const getPostsState = createFeatureSelector<PostsState>(POST_STATE_NAME);
+
+  export const getPosts = createSelector(getPostsState, postSelectors.selectAll);
+
+  export const getPostsEntities = createSelector(
+    getPostsState,
+    postSelectors.selectEntities
+  );
+
+  export const getPostById = createSelector(
+    getPostsEntities,
+    getCurrentRoute,
+    (posts: Dictionary<Post>, route: RouterStateUrl) => {
+      return posts ? posts[route.params['id']] : null;
+    }
+  );
